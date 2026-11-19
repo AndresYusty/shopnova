@@ -10,5 +10,5 @@ public record ProductoRequest(
         @NotNull @DecimalMin(value = "0.01") @Digits(integer = 10, fraction = 2) BigDecimal precio,
         @NotNull @Min(0) @Max(100000) Integer stock,
         @NotBlank @Size(max = 60) String categoria,
-        @Size(max = 300) @Pattern(regexp = "^(https?://.*)?$", message = "debe ser una URL http(s)") String imagenUrl) {
+        @Size(max = 300) @Pattern(regexp = "^((https?://|/img/).*)?$", message = "debe ser una URL http(s) o una imagen de /img/") String imagenUrl) {
 }
