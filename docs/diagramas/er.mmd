@@ -1,0 +1,33 @@
+erDiagram
+  USUARIOS { bigint id PK
+    varchar nombre
+    varchar email UK
+    varchar password
+    varchar rol
+    datetime created_at }
+  PRODUCTOS { bigint id PK
+    varchar nombre
+    varchar descripcion
+    decimal precio
+    int stock
+    varchar categoria
+    varchar imagen_url
+    bigint version }
+  PEDIDOS { bigint id PK
+    bigint usuario_id
+    varchar usuario_email
+    varchar estado
+    decimal total
+    varchar metodo_pago
+    varchar transaccion_id
+    varchar direccion_envio
+    datetime created_at }
+  ITEMS_PEDIDO { bigint id PK
+    bigint pedido_id FK
+    bigint producto_id
+    varchar producto_nombre
+    decimal precio_unitario
+    int cantidad }
+  PEDIDOS ||--|{ ITEMS_PEDIDO : contiene
+  USUARIOS ||..o{ PEDIDOS : "realiza"
+  PRODUCTOS ||..o{ ITEMS_PEDIDO : "aparece en"

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopNova · Tienda en línea</title>
+  <link rel="stylesheet" href="css/styles.css?v=9">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#catalogo" data-view="catalog" aria-label="Ir al catálogo">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 1.2 19.4 11l9.6 1.2-7.2 6.2 2.2 9.4L16 22.8 8 27.8l2.2-9.4L3 12.2 12.6 11z"/></svg>
+    <span class="brand-text">
+      <span class="word">shop<strong>nova</strong></span>
+      <span class="brand-sub">Envíos a todo el país</span>
+    </span>
+  </a>
+  <form id="searchForm" class="search" role="search">
+    <input id="searchInput" type="search" placeholder="Buscar productos, marcas y más" aria-label="Buscar productos" maxlength="60">
+    <button type="submit" aria-label="Buscar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.2 15.2 21 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </form>
+  <nav class="nav">
+    <button class="link" data-view="orders" id="navOrders" hidden>Mis pedidos</button>
+    <button class="link" data-view="admin" id="navAdmin" hidden>Administración</button>
+    <button class="account" data-view="auth" id="btnLogin">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.2c1.4-3 3.8-4.4 7-4.4s5.6 1.4 7 4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span class="account-text"><small>Bienvenido</small><strong>Ingresar</strong></span>
+    </button>
+    <span id="userBox" class="account" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.2c1.4-3 3.8-4.4 7-4.4s5.6 1.4 7 4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span class="account-text"><small>Hola</small><strong id="userName"></strong></span>
+      <button class="link" id="btnLogout">Salir</button>
+    </span>
+    <button class="cart-btn" id="btnCart" data-view="cart" aria-label="Abrir carrito">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 7.5h13.2l-1.2 9.2a1.5 1.5 0 0 1-1.5 1.3H8.9a1.5 1.5 0 0 1-1.5-1.3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.4V6.2A3 3 0 0 1 12 3.2 3 3 0 0 1 15 6.2v1.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span id="cartCount">0</span>
+    </button>
+  </nav>
+</header>
+
+<main>
+  <section id="view-catalog" class="view">
+    <div class="filters" id="categoryFilters" aria-label="Filtrar por categoría"></div>
+    <div id="productGrid" class="grid" aria-live="polite"></div>
+    <div class="pager"><button id="prevPage" type="button">« Anterior</button><span id="pageInfo"></span><button id="nextPage" type="button">Siguiente »</button></div>
+  </section>
+
+  <section id="view-product" class="view" hidden>
+    <button type="button" class="link back" data-view="catalog">← Volver al catálogo</button>
+    <div id="productDetail"></div>
+  </section>
+
+  <section id="view-cart" class="view" hidden>
+    <h2>Tu carrito</h2>
+    <div id="cartItems" class="cart-list"></div>
+    <div class="cart-foot">
+      <p class="total">Total: <strong id="cartTotal">$0</strong></p>
+      <div class="row">
+        <button type="button" data-view="catalog">Seguir comprando</button>
+        <button type="button" class="primary" id="btnCheckout">Ir a pagar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-checkout" class="view" hidden>
+    <button type="button" class="link back" data-view="cart">← Volver al carrito</button>
+    <h2>Finalizar compra</h2>
+    <div class="checkout-layout">
+      <form id="checkoutForm" class="card form">
+        <label>Dirección de envío <input name="direccionEnvio" required minlength="5" maxlength="200" placeholder="Calle 10 # 5-20, Neiva"></label>
+        <fieldset>
+          <legend>Método de pago</legend>
+          <label class="inline"><input type="radio" name="metodoPago" value="TARJETA" checked> Tarjeta</label>
+          <label class="inline"><input type="radio" name="metodoPago" value="CONTRAENTREGA"> Contra entrega</label>
+        </fieldset>
+        <label id="cardLabel">Número de tarjeta
+          <span class="card-input">
+            <input name="numeroTarjeta" inputmode="numeric" maxlength="23" autocomplete="cc-number" placeholder="Número de la tarjeta">
+            <img id="cardBrandIcon" class="card-icon" alt="" hidden>
+          </span>
+        </label>
+        <p id="cardBrand" class="card-brand unknown" hidden></p>
+        <p class="error" id="checkoutError" role="alert"></p>
+        <button type="submit" class="primary">Pagar <span id="checkoutTotal"></span></button>
+      </form>
+      <aside class="card" id="checkoutSummary"></aside>
+    </div>
+  </section>
+
+  <section id="view-auth" class="view" hidden>
+    <form id="authForm" class="form card auth-card">
+      <h2 id="authTitle">Ingresar</h2>
+      <label id="nameLabel" hidden>Nombre <input name="nombre" maxlength="100"></label>
+      <label>Correo <input name="email" type="email" required autocomplete="username"></label>
+      <label>Contraseña <input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
+      <p class="hint" id="pwdHint" hidden>Mínimo 8 caracteres, con letras y números.</p>
+      <p class="error" id="authError" role="alert"></p>
+      <div class="row">
+        <button type="submit" class="primary" id="authSubmit">Ingresar</button>
+        <button type="button" id="authCancel">Volver a la tienda</button>
+      </div>
+      <p class="switch"><button type="button" class="link" id="authSwitch">¿No tienes cuenta? Crear cuenta</button></p>
+    </form>
+  </section>
+
+  <section id="view-orders" class="view" hidden>
+    <h2>Mis pedidos</h2>
+    <div id="ordersList"></div>
+  </section>
+
+  <section id="view-admin" class="view" hidden>
+    <h2>Administración</h2>
+    <div class="admin-grid">
+      <form id="productForm" class="card form">
+        <h3 id="productFormTitle">Nuevo producto</h3>
+        <input type="hidden" name="id">
+        <label>Nombre <input name="nombre" required maxlength="120"></label>
+        <label>Descripción <textarea name="descripcion" maxlength="500"></textarea></label>
+        <label>Precio (COP) <input name="precio" type="number" min="1" step="0.01" required></label>
+        <label>Stock <input name="stock" type="number" min="0" required></label>
+        <label>Categoría <input name="categoria" required maxlength="60"></label>
+        <label>URL de imagen <input name="imagenUrl" type="text" maxlength="300" placeholder="/img/audifonos.jpg"></label>
+        <div class="row"><button type="submit" class="primary">Guardar</button><button type="reset" id="resetProduct">Limpiar</button></div>
+      </form>
+      <div class="card">
+        <h3>Pedidos</h3>
+        <div id="adminOrders"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button id="chatToggle" class="chat-toggle" aria-label="Abrir asistente virtual">💬</button>
+<section id="chatBox" class="chat" hidden aria-label="Asistente virtual">
+  <div class="chat-head">Nova · Asistente virtual <button class="link" id="chatClose" aria-label="Cerrar chat">✕</button></div>
+  <div id="chatMessages" class="chat-msgs" aria-live="polite"></div>
+  <div id="chatOptions" class="chat-opts"></div>
+  <form id="chatForm" class="chat-form">
+    <input id="chatInput" placeholder="Escribe tu pregunta..." maxlength="300" autocomplete="off" aria-label="Mensaje">
+    <button type="submit">Enviar</button>
+  </form>
+</section>
+
+<div id="payTerminal" class="pay-terminal" hidden>
+  <div class="pay-panel">
+    <div id="payWorking">
+      <div class="pay-spinner" aria-hidden="true"></div>
+      <p id="payStatus">Conectando con el banco…</p>
+    </div>
+    <div id="payReceipt" hidden></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

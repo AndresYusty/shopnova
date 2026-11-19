@@ -1,0 +1,17 @@
+flowchart TB
+  cliente["👤 Cliente<br/>[Persona]<br/>Compra productos y consulta pedidos"]
+  admin["👤 Administrador<br/>[Persona]<br/>Gestiona catálogo y pedidos"]
+  sys["🛒 ShopNova<br/>[Sistema de software]<br/>Plataforma de e-commerce distribuida<br/>con asistente virtual"]
+  pago["💳 Pasarela de pagos<br/>[Sistema externo - simulado]"]
+  mail["✉️ Servidor SMTP<br/>[Sistema externo]<br/>Mailpit / Gmail"]
+  cliente -->|"Navega, compra y chatea<br/>HTTPS"| sys
+  admin -->|"Administra<br/>HTTPS"| sys
+  sys -->|"Cobra pedidos"| pago
+  sys -->|"Envía correos<br/>SMTP"| mail
+  mail -->|"Notificaciones"| cliente
+  classDef p fill:#08427b,color:#fff,stroke:#052e56
+  classDef s fill:#1168bd,color:#fff,stroke:#0b4884
+  classDef e fill:#999,color:#fff,stroke:#6b6b6b
+  class cliente,admin p
+  class sys s
+  class pago,mail e

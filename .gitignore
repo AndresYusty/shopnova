@@ -1,0 +1,14 @@
+# Compilados de Maven
+target/
+
+# Secretos locales (el ejemplo sí se versiona)
+.env
+
+# Dependencias y logs
+node_modules/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml

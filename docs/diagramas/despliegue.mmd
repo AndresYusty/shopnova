@@ -1,0 +1,19 @@
+flowchart TB
+  subgraph host["Servidor / VM en la nube (Docker Engine)"]
+    subgraph net["Red bridge 'backend'"]
+      gw["frontend (Nginx) :80"]
+      a["auth-service :8081"]
+      c["catalog-service :8082"]
+      o["order-service :8083"]
+      n["notification-service :8084"]
+      b["chatbot-service :8085"]
+      my[("mysql :3306<br/>shopnova_db<br/>volumen mysql_data")]
+      r[["rabbitmq :5672 / :15672"]]
+      mp["mailpit :1025 / :8025"]
+    end
+  end
+  internet["🌐 Usuarios"] -->|":80"| gw
+  gw --> a & c & o & b
+  a & c & o --> my
+  o & n --> r
+  n --> mp

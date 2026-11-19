@@ -1,0 +1,29 @@
+sequenceDiagram
+  autonumber
+  actor C as Cliente
+  participant G as Gateway
+  participant O as order-service
+  participant K as catalog-service
+  participant P as Pasarela (simulada)
+  participant Q as RabbitMQ
+  participant N as notification-service
+  C->>G: POST /api/orders (JWT)
+  G->>O: reenvía petición
+  O->>O: valida JWT y datos
+  loop por cada producto
+    O->>K: POST /internal/products/{id}/reserve
+    K-->>O: 200 producto (precio, nombre)
+  end
+  O->>P: cobrar(total)
+  alt pago aprobado
+    P-->>O: transaccionId
+    O->>O: guarda pedido (PAGADO)
+    O-)Q: publica order.created
+    O-->>C: 201 Pedido
+    Q-)N: entrega evento
+    N->>N: envía correo de confirmación
+  else pago rechazado
+    P-->>O: rechazado
+    O->>K: /release (compensación)
+    O-->>C: 402 Pago rechazado
+  end

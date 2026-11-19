@@ -1,0 +1,27 @@
+flowchart TB
+  user["👤 Cliente / Administrador"]
+  subgraph ShopNova["ShopNova - red Docker 'backend'"]
+    gw["frontend<br/>[Nginx: tienda + API Gateway]<br/>Enrutamiento, rate limiting,<br/>cabeceras de seguridad, SPA HTML/JS"]
+    auth["auth-service<br/>[Spring Boot]<br/>Registro, login, JWT"]
+    cat["catalog-service<br/>[Spring Boot]<br/>Productos e inventario"]
+    ord["order-service<br/>[Spring Boot]<br/>Pedidos, pago, eventos"]
+    chat["chatbot-service<br/>[Spring Boot]<br/>Motor de reglas"]
+    noti["notification-service<br/>[Spring Boot]<br/>Correos"]
+    mq[["RabbitMQ<br/>[Broker de mensajes]<br/>exchange shopnova.events"]]
+    db[("shopnova_db<br/>[MySQL]<br/>usuarios · productos ·<br/>pedidos · items_pedido")]
+  end
+  smtp["✉️ SMTP (Mailpit)"]
+  user -->|HTTPS / JSON| gw
+  gw -->|"/api/auth"| auth
+  gw -->|"/api/products"| cat
+  gw -->|"/api/orders"| ord
+  gw -->|"/api/chat"| chat
+  auth -->|"JPA"| db
+  cat -->|"JPA"| db
+  ord -->|"JPA"| db
+  ord -->|"REST síncrono<br/>reservar/liberar stock"| cat
+  chat -->|"REST síncrono"| cat
+  chat -->|"REST + JWT"| ord
+  ord -.->|"AMQP asíncrono<br/>order.created / order.status"| mq
+  mq -.->|"cola notifications.orders"| noti
+  noti --> smtp

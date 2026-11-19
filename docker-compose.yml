@@ -1,0 +1,140 @@
+# ShopNova - Plataforma de e-commerce distribuida
+# Levantar todo:  docker compose up -d --build
+# Tienda: http://localhost  · RabbitMQ: http://localhost:15672 · Correos: http://localhost:8025
+
+x-java-service: &java-service
+  restart: unless-stopped
+  networks: [backend]
+  deploy:
+    resources:
+      limits:
+        memory: 512m
+
+x-common-env: &common-env
+  JWT_SECRET: ${JWT_SECRET}
+  INTERNAL_KEY: ${INTERNAL_KEY}
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: shopnova-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: shopnova_db
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports: ["3307:3306"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: shopnova-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+    ports: ["15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: shopnova-mailpit
+    ports: ["8025:8025"]
+    networks: [backend]
+
+  auth-service:
+    <<: *java-service
+    build: ./backend/auth-service
+    environment:
+      <<: *common-env
+      DB_URL: jdbc:mysql://mysql:3306/shopnova_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    ports: ["8081:8081"]
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  catalog-service:
+    <<: *java-service
+    build: ./backend/catalog-service
+    environment:
+      <<: *common-env
+      DB_URL: jdbc:mysql://mysql:3306/shopnova_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports: ["8082:8082"]
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  order-service:
+    <<: *java-service
+    build: ./backend/order-service
+    environment:
+      <<: *common-env
+      DB_URL: jdbc:mysql://mysql:3306/shopnova_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
+      CATALOG_URL: http://catalog-service:8082
+    ports: ["8083:8083"]
+    depends_on:
+      mysql: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      catalog-service: { condition: service_started }
+
+  notification-service:
+    <<: *java-service
+    build: ./backend/notification-service
+    environment:
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
+      MAIL_STARTTLS: ${MAIL_STARTTLS}
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      mailpit: { condition: service_started }
+
+  chatbot-service:
+    <<: *java-service
+    build: ./backend/chatbot-service
+    environment:
+      CATALOG_URL: http://catalog-service:8082
+      ORDER_URL: http://order-service:8083
+    ports: ["8085:8085"]
+    depends_on: [catalog-service, order-service]
+
+  frontend:
+    build: ./frontend
+    container_name: shopnova-frontend
+    ports: ["80:80"]
+    depends_on: [auth-service, catalog-service, order-service, chatbot-service]
+    restart: unless-stopped
+    networks: [backend]
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql_data:

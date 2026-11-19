@@ -1,0 +1,19 @@
+flowchart LR
+  gw["frontend (Nginx)"] --> ctrl
+  subgraph order-service
+    ctrl["PedidoController<br/>[REST Controller]"]
+    filter["JwtAuthFilter<br/>[Spring Security]"]
+    svc["PedidoService<br/>[Orquestador Saga]"]
+    repo["PedidoRepository<br/>[Spring Data JPA]"]
+    cc["CatalogClient<br/>[RestClient + timeouts]"]
+    pg["PaymentGateway<br/>[Strategy/Adapter]"]
+    pub["EventPublisher<br/>[RabbitTemplate]"]
+    filter --> ctrl --> svc
+    svc --> repo
+    svc --> cc
+    svc --> pg
+    svc --> pub
+  end
+  repo --> db[("shopnova_db")]
+  cc --> cat["catalog-service"]
+  pub -.-> mq[["RabbitMQ"]]

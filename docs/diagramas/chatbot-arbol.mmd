@@ -1,0 +1,21 @@
+flowchart TD
+  m["Mensaje del usuario"] --> n["Normalizar<br/>(minúsculas, sin tildes ni signos)"]
+  n --> r1{"¿cancelar / anular?"}
+  r1 -- sí --> a1["Instrucciones de cancelación"]
+  r1 -- no --> r2{"¿pedido + número?"}
+  r2 -- sí --> t{"¿Tiene sesión (JWT)?"}
+  t -- no --> a2["Pedir inicio de sesión"]
+  t -- sí --> a3["Consultar order-service<br/>→ estado real del pedido"]
+  r2 -- no --> r3{"¿devolución / garantía?"}
+  r3 -- sí --> a4["FAQ devoluciones"]
+  r3 -- no --> r4{"¿envío / entrega?"}
+  r4 -- sí --> a5["FAQ envíos"]
+  r4 -- no --> r5{"¿pago / tarjeta?"}
+  r5 -- sí --> a6["FAQ pagos"]
+  r5 -- no --> r6{"¿cuenta / asesor?"}
+  r6 -- sí --> a7["FAQ cuenta / contacto"]
+  r6 -- no --> r7{"¿precio / buscar / tienen?"}
+  r7 -- sí --> a8["Consultar catalog-service<br/>→ hasta 3 productos"]
+  r7 -- no --> r8{"¿hola / gracias?"}
+  r8 -- sí --> a9["Saludo con menú / despedida"]
+  r8 -- no --> a10["Fallback: no entendí + menú de opciones"]
